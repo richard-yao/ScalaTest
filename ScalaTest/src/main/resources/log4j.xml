@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration debug="true"
+	xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="&lt;%-d{yyyy-MM-dd HH:mm:ss}&gt;%p [%t] %c{1}.%M(%L) | %m%n" />
+		</layout>
+	</appender>
+	
+	<!-- all debug log -->
+	<appender name="debug" class="org.apache.log4j.RollingFileAppender">
+		<param name="Append" value="true" />
+		<param name="File" value="logs/debug.log" />
+		<param name="MaxFileSize" value="256MB" />
+		<param name="MaxBackupIndex" value="10" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="[%d{yyyy-MM-dd HH:mm:ss,SSS\} %-5p] %M(%F:%L) - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="DEBUG" />
+			<param name="LevelMax" value="DEBUG" />
+		</filter>
+	</appender>
+
+	<!-- all info log -->
+	<appender name="info" class="org.apache.log4j.RollingFileAppender">
+		<param name="Append" value="true" />
+		<param name="File" value="logs/info.log" />
+		<param name="MaxFileSize" value="256MB" />
+		<param name="MaxBackupIndex" value="10" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="[%d{yyyy-MM-dd HH:mm:ss,SSS\} %-5p] %M(%F:%L) - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="INFO" />
+			<param name="LevelMax" value="INFO" />
+		</filter>
+	</appender>
+
+	<!-- all warn log -->
+	<appender name="warn" class="org.apache.log4j.RollingFileAppender">
+		<param name="Append" value="true" />
+		<param name="File" value="logs/warn.log" />
+		<param name="MaxFileSize" value="256MB" />
+		<param name="MaxBackupIndex" value="10" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="[%d{yyyy-MM-dd HH:mm:ss,SSS\} %-5p] %M(%F:%L) - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="WARN" />
+			<param name="LevelMax" value="WARN" />
+		</filter>
+	</appender>
+
+	<!-- all error log -->
+	<appender name="error" class="org.apache.log4j.RollingFileAppender">
+		<param name="Append" value="true" />
+		<param name="File" value="logs/error.log" />
+		<param name="MaxFileSize" value="256MB" />
+		<param name="MaxBackupIndex" value="10" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="[%d{yyyy-MM-dd HH:mm:ss,SSS\} %-5p] %M(%F:%L) - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="ERROR" />
+			<param name="LevelMax" value="ERROR" />
+		</filter>
+	</appender>
+
+	<!-- all fatal log -->
+	<appender name="fatal" class="org.apache.log4j.RollingFileAppender">
+		<param name="Append" value="true" />
+		<param name="File" value="logs/fatal.log" />
+		<param name="MaxFileSize" value="256MB" />
+		<param name="MaxBackupIndex" value="10" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="[%d{yyyy-MM-dd HH:mm:ss,SSS\} %-5p] %M(%F:%L) - %m%n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="FATAL" />
+			<param name="LevelMax" value="FATAL" />
+		</filter>
+	</appender>
+
+	<appender name="email_send" class="org.apache.log4j.net.SMTPAppender">
+		<param name="Threshold" value="fatal" />
+		<param name="BufferSize" value="128" />
+		<param name="SMTPHost" value="smtp.126.com" />
+		<param name="SMTPUsername" value="ydcsh@126.com" />
+		<param name="SMTPPassword" value="qcs2301104" />
+		<param name="From" value="ydcsh@126.com" />
+		<param name="To" value="justinchen@tvunetworks.com" />
+		<param name="Subject" value="TVUPack Speed Error Report" />
+		<param name="LocationInfo" value="true" />
+		<param name="SMTPDebug" value="true" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{ISO8601}] %-5p %c %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="ASYNC_MAIL" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="1" />
+		<appender-ref ref="email_send" />
+	</appender>	
+<!-- 
+	<logger name="com.tvunetworks.center.tpds" additivity="false">
+		<level value="error" />
+		<appender-ref ref="debug" />
+		<appender-ref ref="info" />
+		<appender-ref ref="warn" />
+		<appender-ref ref="error" />
+	</logger>
+ -->
+
+	<root>
+		<level value="info" />
+		<appender-ref ref="stdout" />
+		<appender-ref ref="debug" />
+		<appender-ref ref="info" />
+		<appender-ref ref="warn" />
+		<appender-ref ref="error" />
+		<appender-ref ref="fatal" />
+		<!-- <appender-ref ref="ASYNC_MAIL" /> -->
+	</root>
+
+	
+	
+	
+</log4j:configuration>
