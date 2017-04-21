@@ -24,11 +24,19 @@ object Marker {
     "green" -> new Marker("green")
   )
   
+  /**
+   * apply方法可以被Marker(xxx)隐式调用
+   */
+  def apply(color: String) = {
+    if(markers.contains(color)) markers(color) else null
+  }
+  
   def getMarker(color: String) = {
     if(markers.contains(color)) markers(color) else null
   }
   
   def main(args: Array[String]) = {
+    println(Marker("green"))
     val marker = new Marker("purple")
     println(marker.toString())
     println(Marker.getMarker("blue"))
