@@ -10,7 +10,7 @@
 				value="&lt;%-d{yyyy-MM-dd HH:mm:ss}&gt;%p [%t] %c{1}.%M(%L) | %m%n" />
 		</layout>
 	</appender>
-	
+
 	<!-- all debug log -->
 	<appender name="debug" class="org.apache.log4j.RollingFileAppender">
 		<param name="Append" value="true" />
@@ -91,36 +91,6 @@
 		</filter>
 	</appender>
 
-	<appender name="email_send" class="org.apache.log4j.net.SMTPAppender">
-		<param name="Threshold" value="fatal" />
-		<param name="BufferSize" value="128" />
-		<param name="SMTPHost" value="smtp.126.com" />
-		<param name="SMTPUsername" value="ydcsh@126.com" />
-		<param name="SMTPPassword" value="qcs2301104" />
-		<param name="From" value="ydcsh@126.com" />
-		<param name="To" value="justinchen@tvunetworks.com" />
-		<param name="Subject" value="TVUPack Speed Error Report" />
-		<param name="LocationInfo" value="true" />
-		<param name="SMTPDebug" value="true" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="[%d{ISO8601}] %-5p %c %m%n" />
-		</layout>
-	</appender>
-
-	<appender name="ASYNC_MAIL" class="org.apache.log4j.AsyncAppender">
-		<param name="BufferSize" value="1" />
-		<appender-ref ref="email_send" />
-	</appender>	
-<!-- 
-	<logger name="com.tvunetworks.center.tpds" additivity="false">
-		<level value="error" />
-		<appender-ref ref="debug" />
-		<appender-ref ref="info" />
-		<appender-ref ref="warn" />
-		<appender-ref ref="error" />
-	</logger>
- -->
-
 	<root>
 		<level value="info" />
 		<appender-ref ref="stdout" />
@@ -129,10 +99,6 @@
 		<appender-ref ref="warn" />
 		<appender-ref ref="error" />
 		<appender-ref ref="fatal" />
-		<!-- <appender-ref ref="ASYNC_MAIL" /> -->
 	</root>
 
-	
-	
-	
 </log4j:configuration>

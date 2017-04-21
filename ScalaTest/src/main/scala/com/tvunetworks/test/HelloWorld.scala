@@ -12,7 +12,7 @@ object HelloWorld {
    * The first scala program
    */
   def main(args: Array[String]): Unit = {
-    DOMConfigurator.configure("log4j.xml");
+    DOMConfigurator.configure("target/log4j.xml");
     logger.info("Use log4j to print out log")
     println("Hello world!")
     println("Hello world!")
