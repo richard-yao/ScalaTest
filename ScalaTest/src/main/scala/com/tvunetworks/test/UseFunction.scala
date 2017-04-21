@@ -10,6 +10,9 @@ object UseFunction {
     printInt(value2 = 7, value1 = 5)
     useVariableLengthParameters(5,"123","abc")
     println(apply(layout, 10))
+    var richard = new Person(21, "richard", true)
+    richard.printPersonInfo()
+    println(richard.toString())
   }
   
   /**
