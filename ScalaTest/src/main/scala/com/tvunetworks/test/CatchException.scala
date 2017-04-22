@@ -17,6 +17,7 @@ object CatchException {
   val logger: Logger = Logger.getLogger("CatchException")
   
   def main(args: Array[String]) {
+    println("--------print out value----------")
     try {
       if(args.length == 0) {
         throw new Exception("Input parameter empty")
