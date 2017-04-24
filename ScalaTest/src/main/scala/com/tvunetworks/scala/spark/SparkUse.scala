@@ -9,6 +9,7 @@ import org.apache.spark.rdd.RDD
 import java.io.File
 import java.util.HashMap
 import java.util.ArrayList
+import java.sql.{Connection, DriverManager, Statement}
 
 /**
  * @author RichardYao
@@ -52,8 +53,31 @@ object SparkUse {
     var filterPairs = rdd.filter(line => line.split(" ").length >= rightLogLine)
     var ipMap = filterPairs.map(line => line.split(" ")(0))
     var mapResult = ipMap.map(word => (word, 1))
-    var reduceRdd = mapResult.reduceByKey(_ + _)
-    reduceRdd.sortByKey(true).foreach(pair => println("ip-address: " + pair._1 + ", appear times: " + pair._2))
+    var reduceRdd = mapResult.reduceByKey(_ + _).sortByKey(true)
+    reduceRdd.foreach(pair => {
+      println("ip-address: " + pair._1 + ", appear times: " + pair._2);
+    })
+    reduceRdd.foreachPartition(addPairsList)
+  }
+  
+  def addPairsList(pairs: Iterator[(String, Int)]): Unit = {
+    val dbUrl = "jdbc:mysql://10.12.22.78:3306/statistic_data"
+    val dbDriver = "com.mysql.jdbc.Driver"
+    val dbUser = "root"
+    val dbPasswd = "tvu1p2ack3"
+    val connection: Connection = DriverManager.getConnection(dbUrl, dbUser, dbPasswd)
+    val statement = connection.createStatement()
+    val sql = "insert into ip_statistic values('{0}', {1})"
+    connection.setAutoCommit(false)
+    while(pairs.hasNext) {
+      var tempPair = pairs.next()
+      var tempSql = sql.replace("{0}", tempPair._1).replace("{1}", String.valueOf(tempPair._2))
+      statement.addBatch(tempSql)
+    }
+    statement.executeBatch()
+    connection.commit()
+    statement.close()
+    connection.close()
   }
   
   /**
