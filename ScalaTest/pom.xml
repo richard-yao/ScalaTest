@@ -82,7 +82,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.tvunetworks.scala.spark.SparkUse</mainClass>
+							<mainClass>com.tvunetworks.scala.spark.LogAnalysisApp</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

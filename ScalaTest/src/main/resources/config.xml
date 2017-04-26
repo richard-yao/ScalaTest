@@ -1,0 +1,17 @@
+<configuration>
+    <sparkConfig>
+        <master>spark://10.12.23.4:7077</master>
+        <appName>statistic-kpi</appName>
+    </sparkConfig>
+    <hdfsConfig>
+        <hdfsAddress>hdfs://hadoop-master:9000/</hdfsAddress>
+    </hdfsConfig>
+    <logProperties>
+        <log>
+            <statisticTopic>IpAddressAnalysis</statisticTopic>
+            <appClass>com.tvunetworks.scala.spark.AnalysisIpAddress</appClass>
+            <sourceFilePath>/user/hadoop/input/tenlines.log</sourceFilePath>
+            <items>ip</items>
+        </log>
+    </logProperties>
+</configuration>

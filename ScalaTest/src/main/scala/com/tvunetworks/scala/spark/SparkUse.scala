@@ -97,7 +97,7 @@ object SparkUse {
   def isHdfsFileExist(filePath: String): Boolean = filePath.startsWith(hdfsAddress) && {
     val hdfsAddr = substrHdfsAddress(filePath, hdfsAddress.length())
     val configuration = new Configuration
-		configuration.set("fs.defaultFS", hdfsAddr);
+    configuration.set("fs.defaultFS", hdfsAddr);
     val fs = FileSystem.get(configuration)
     val path = new Path(filePath)
     fs.exists(path)
