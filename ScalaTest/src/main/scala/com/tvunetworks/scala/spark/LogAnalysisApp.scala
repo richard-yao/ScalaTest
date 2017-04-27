@@ -6,7 +6,11 @@ import org.apache.hadoop.fs.Path
 import com.tvunetworks.scala.xml.XmlAnalysis
 import com.tvunetworks.scala.model.ServerLog
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.streaming.Seconds
 import com.tvunetworks.scala.model.ServerLog
+import org.apache.spark.SparkConf
 
 /**
  * @author RichardYao
@@ -30,7 +34,8 @@ object LogAnalysisApp {
       
       val master = sparkConfigMap("sparkMaster")
       val appName = sparkConfigMap("sparkAppName")
-      val sc = new SparkContext(master, appName)
+      val sparkConf = new SparkConf().setMaster(master).setAppName(appName)
+      val sc = new SparkContext(sparkConf)
       val resultRdd = logConfigMap.map(log => {
         val logTopic = log._1 //对日志数据进行处理的项目名
         val propMap = log._2 //进行处理的相关参数
@@ -44,6 +49,14 @@ object LogAnalysisApp {
         val constructor = constructors(0).newInstance()
         val outputRecord = constructor.asInstanceOf[AnalysisBase[ServerLog]].run(filterData)
       })
+      sc.stop //一个JVM上只能有一个SparkContext是激活的
+      
+      val ssc = new StreamingContext(sparkConf, Seconds(1));
+      ssc.checkpoint("/user/hadoop/checkpoint") //checkpoint文件保存地址
+      val kafkaStreaming = new AnalysisKafkaStream()
+      kafkaStreaming.useKafkaStreaming(ssc)
+      ssc.start()
+      ssc.awaitTermination()
     }
   }
   

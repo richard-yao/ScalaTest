@@ -1,7 +1,6 @@
 package com.tvunetworks.test
 
 import java.util.Date
-import org.scalatest.junit.AssertionsForJUnit
 
 object UseFunction {
   

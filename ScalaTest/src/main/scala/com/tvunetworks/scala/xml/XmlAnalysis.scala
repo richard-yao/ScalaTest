@@ -13,6 +13,7 @@ object XmlAnalysis {
   
   @BeanProperty val sparkConfigurationMap = Map[String, String]()
   @BeanProperty val hdfsConfigurationMap = Map[String, String]()
+  @BeanProperty val kafkaConfigurationMap = Map[String, String]()
   @BeanProperty val logConfigurationMap = Map[String, Map[String, String]]()
   
   //properties file location:
@@ -31,6 +32,17 @@ object XmlAnalysis {
       val hdfsNode = xmlFile \ "hdfsConfig"
       val hdfsAddress = (hdfsNode \ "hdfsAddress").text.toString.trim()
       hdfsConfigurationMap += ("hdfsAddress" -> hdfsAddress)
+      
+      //-------------------kafka-streaming configuration properties---------------------
+      val kafkaNode = xmlFile \ "kafkaConfig"
+      val groupId = (kafkaNode \ "groupId").text.toString.trim()
+      val bootstrapServer = (kafkaNode \ "bootstrapServers").text.toString.trim()
+      val zookeeperCluster = (kafkaNode \ "zookeeper").text.toString.trim()
+      val topic = (kafkaNode \ "topic").text.toString.trim()
+      kafkaConfigurationMap += ("group.id" -> groupId)
+      kafkaConfigurationMap += ("bootstrap.servers" -> bootstrapServer)
+      kafkaConfigurationMap += ("zookeeper" -> zookeeperCluster)
+      kafkaConfigurationMap += ("topic" -> topic)
       
       //-------------------log configuration properties---------------------
       val mixLogs = xmlFile \ "logProperties" \ "log"
