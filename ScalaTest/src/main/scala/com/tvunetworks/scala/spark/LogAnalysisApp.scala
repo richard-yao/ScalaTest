@@ -35,7 +35,8 @@ object LogAnalysisApp {
       val master = sparkConfigMap("sparkMaster")
       val appName = sparkConfigMap("sparkAppName")
       val sparkConf = new SparkConf().setMaster(master).setAppName(appName)
-      val sc = new SparkContext(sparkConf)
+      val ssc = new StreamingContext(sparkConf, Seconds(1));
+      val sc = ssc.sparkContext //一个JVM上只能有一个SparkContext是激活的
       val resultRdd = logConfigMap.map(log => {
         val logTopic = log._1 //对日志数据进行处理的项目名
         val propMap = log._2 //进行处理的相关参数
@@ -49,9 +50,8 @@ object LogAnalysisApp {
         val constructor = constructors(0).newInstance()
         val outputRecord = constructor.asInstanceOf[AnalysisBase[ServerLog]].run(filterData)
       })
-      sc.stop //一个JVM上只能有一个SparkContext是激活的
       
-      val ssc = new StreamingContext(sparkConf, Seconds(1));
+      //对于updateStateByKey这种会改变状态的transformation操作需要使用checkpoint
       ssc.checkpoint("/user/hadoop/checkpoint") //checkpoint文件保存地址
       val kafkaStreaming = new AnalysisKafkaStream()
       kafkaStreaming.useKafkaStreaming(ssc)

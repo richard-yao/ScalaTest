@@ -22,12 +22,16 @@ class AnalysisKafkaStream {
     val consumerThreads = 3
     val topics = Set(kafkaConfig("topic"))
     val kafkaParam = Map("metadata.broker.list" -> kafkaConfig("bootstrap.servers"))
-    val stream: InputDStream[(String, String)] = createStream(ssc, kafkaParam, topics)
-    stream.map(_._2) //取出value
-      .flatMap(_.split(" ")) //将字符串按空格划分
-      .map(r => (r, 1)) //将每个单词映射成一个pair
-      .updateStateByKey[Int](updateFunc) //用当前batch的数据区更新已有数据
-      .print()
+    
+    //启动多个DStream
+    val kafkaDStreams = (1 to consumerThreads).map(idx => {
+      val stream: InputDStream[(String, String)] = createStream(ssc, kafkaParam, topics)
+      stream.map(_._2) //取出value
+        .flatMap(_.split(" ")) //将字符串按空格划分
+        .map(r => (r, 1)) //将每个单词映射成一个pair
+        .updateStateByKey[Int](updateFunc) //用当前batch的数据区更新已有数据, 对于每个key都会调用func函数处理先前的状态和所有新的状态
+        .print()
+    })
     //val kafkaDStreams = KafkaUtils.createStream(ssc, kafkaConfig("zookeeper"), kafkaConfig("group.id"), topics, StorageLevel.MEMORY_AND_DISK_SER)
     //kafkaDStreams.saveAsTextFiles(prefixPath, suffixPath)
   }
