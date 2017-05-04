@@ -6,8 +6,9 @@ import org.apache.spark.rdd.RDD
 /**
  * @author RichardYao
  * @date 2017?4?25?
+ * Task need extends Serializable
  */
-trait AnalysisBase[T] {
+trait AnalysisBase[T] extends Serializable {
   
   def run(streamData: RDD[T]): Unit
 }

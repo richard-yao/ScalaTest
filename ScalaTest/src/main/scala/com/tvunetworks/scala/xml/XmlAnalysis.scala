@@ -9,7 +9,7 @@ import java.io.InputStream
  * @author RichardYao
  * @date 2017?4?25?
  */
-object XmlAnalysis {
+object XmlAnalysis extends Serializable {
   
   @BeanProperty val sparkConfigurationMap = Map[String, String]()
   @BeanProperty val hdfsConfigurationMap = Map[String, String]()
@@ -25,8 +25,10 @@ object XmlAnalysis {
       val sparkNode = xmlFile \ "sparkConfig"
       val sparkMaster = (sparkNode \ "master").text.toString.trim()
       val sparkAppName = (sparkNode \ "appName").text.toString.trim()
+      val duration = (sparkNode \ "duration").text.toString.trim()
       sparkConfigurationMap += ("sparkMaster" -> sparkMaster)
       sparkConfigurationMap += ("sparkAppName" -> sparkAppName)
+      sparkConfigurationMap += ("duration" -> duration)
       
       //-------------------hdfs configuration properties---------------------
       val hdfsNode = xmlFile \ "hdfsConfig"
