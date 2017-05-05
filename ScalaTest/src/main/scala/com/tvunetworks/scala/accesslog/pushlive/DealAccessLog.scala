@@ -16,7 +16,10 @@ class DealAccessLog[T] extends AnalysisBase[T] {
     val successRequest = linesData.filter(_.requestResult.equals("200"))
     val postRequest = dealWithLineData(successRequest.filter(_.requestMethod.equals("POST"))).foreach(record => println("POST request: "+record))
     val getRequest = dealWithLineData(successRequest.filter(_.requestMethod.equals("GET"))).foreach(record => println("GET request: "+record))
-    val pvData = dealPVData(successRequest).map(record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2}).foreach(println)
+    //val pvData = dealPVData(successRequest).map(record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2}).foreach(println)
+    
+    val pvAverageTime = dealPVAndAverageTimeData(successRequest).map(
+        record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2._2 + "\t" + countDivide(record._2._1, record._2._2)}).foreach(println)
   }
   
   def filterXhrMethod(record: CloudLiveAccessLog): Boolean = {
@@ -32,6 +35,16 @@ class DealAccessLog[T] extends AnalysisBase[T] {
   def dealPVData(requestData: RDD[CloudLiveAccessLog]): RDD[((String, String), Int)] = {
     val reduceResult = requestData.map(record => ((record.formatTime, record.requestAddress), 1)).reduceByKey(_+_)
     reduceResult.sortBy(record => PVSort(record._1._1, record._2))
+  }
+  
+  //统计PV的数据同时，计算每个访问当天的平均相应速度
+  def dealPVAndAverageTimeData(requestData: RDD[CloudLiveAccessLog]): RDD[((String, String), (Long, Int))] = {
+    val averageTime = requestData.map(record => ((record.formatTime, record.requestAddress), (record.requestInterval.toLong, 1))).reduceByKey((a, b) => (a._1 + b._1, a._2 + b._2))
+    averageTime.sortBy(record => PVSort(record._1._1, record._2._2))
+  }
+  
+  def countDivide(sum: Long, number: Int): Int = {
+    (sum / number).toInt
   }
 }
 

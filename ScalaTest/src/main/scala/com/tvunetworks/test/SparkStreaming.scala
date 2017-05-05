@@ -5,8 +5,8 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.dstream.DStream.toPairDStreamFunctions
 import com.tvunetworks.scala.xml.XmlAnalysis
-import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.streaming.kafka010.KafkaUtils
 
 object SparkStreaming extends App {
   
@@ -25,6 +25,6 @@ object SparkStreaming extends App {
     
     val consumerThreads = 3
     val topics = Map(kafkaParams("topic") -> consumerThreads)
-    val kafkaDStreams = KafkaUtils.createStream(ssc, kafkaParams("zookeeper"), kafkaParams("group.id"), topics, StorageLevel.MEMORY_ONLY)
+    //val kafkaDStreams = KafkaUtils.createStream(ssc, kafkaParams("zookeeper"), kafkaParams("group.id"), topics, StorageLevel.MEMORY_ONLY)
   }
 }
