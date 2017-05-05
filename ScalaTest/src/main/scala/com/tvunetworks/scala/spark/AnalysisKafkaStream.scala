@@ -10,6 +10,7 @@ import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import com.tvunetworks.scala.util.UserMemcachedClientImpl
 
 /**
  * @author RichardYao
@@ -43,7 +44,8 @@ class AnalysisKafkaStream extends Serializable {
         .map(r => (r, 1)) //将每个单词映射成一个pair
         .updateStateByKey[Int](updateFunc) //用当前batch的数据区更新已有数据, 对于每个key都会调用func函数处理先前的状态和所有新的状态
       batchData.foreachRDD(rdd => {
-       rdd.collectAsMap().foreach(println)
+       //rdd.collectAsMap().foreach(println)
+        saveRddDataToMemcache(rdd)
       }) //每个duration统计数据
       //batchData.countByWindow(Seconds(duration * 6), Seconds(duration * 6)).print() //时间窗口数据统计
       
@@ -53,6 +55,13 @@ class AnalysisKafkaStream extends Serializable {
        stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRange)
       })
     //})
+  }
+  
+  def saveRddDataToMemcache(parameter: RDD[(String, Int)]) {
+    val memcacheConfig = XmlAnalysis.memcacheConfigurationMap
+    val memcacheClient = UserMemcachedClientImpl.getInstance(memcacheConfig("hosts"), memcacheConfig("timeout").toLong)
+    val key = "spark_split_word_result"
+    memcacheClient.set(key, parameter.collectAsMap(), 0)
   }
   
   val updateFunc = (currentValues: Seq[Int], preValue: Option[Int]) => {

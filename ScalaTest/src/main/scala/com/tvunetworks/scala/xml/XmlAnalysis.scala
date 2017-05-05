@@ -14,6 +14,7 @@ object XmlAnalysis extends Serializable {
   @BeanProperty val sparkConfigurationMap = Map[String, String]()
   @BeanProperty val hdfsConfigurationMap = Map[String, String]()
   @BeanProperty val kafkaConfigurationMap = Map[String, String]()
+  @BeanProperty val memcacheConfigurationMap = Map[String, String]()
   @BeanProperty val logConfigurationMap = Map[String, Map[String, String]]()
   
   //properties file location:
@@ -45,6 +46,13 @@ object XmlAnalysis extends Serializable {
       kafkaConfigurationMap += ("bootstrap.servers" -> bootstrapServer)
       kafkaConfigurationMap += ("zookeeper" -> zookeeperCluster)
       kafkaConfigurationMap += ("topic" -> topic)
+      
+      //-------------------memcache configuration properties---------------------
+      val memcacheNode = xmlFile \ "memcacheConfig"
+      val memcacheHosts = (memcacheNode \ "hosts").text.toString.trim()
+      val memcacheTimeout = (memcacheNode \ "timeout").text.toString.trim()
+      memcacheConfigurationMap += ("hosts" -> memcacheHosts)
+      memcacheConfigurationMap += ("timeout" -> memcacheTimeout)
       
       //-------------------log configuration properties---------------------
       val mixLogs = xmlFile \ "logProperties" \ "log"
