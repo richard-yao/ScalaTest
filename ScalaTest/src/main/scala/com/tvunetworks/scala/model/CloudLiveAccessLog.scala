@@ -1,4 +1,4 @@
-package com.tvunetworks.scala.accesslog.pushlive
+package com.tvunetworks.scala.model
 
 import java.text.SimpleDateFormat
 import java.util.TimeZone

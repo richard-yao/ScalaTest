@@ -10,7 +10,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.Seconds
 import org.apache.spark.SparkConf
-import com.tvunetworks.scala.accesslog.pushlive.CloudLiveAccessLog
+import com.tvunetworks.scala.model.CloudLiveAccessLog
 
 /**
  * @author RichardYao

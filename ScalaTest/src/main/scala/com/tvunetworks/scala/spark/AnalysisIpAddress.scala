@@ -1,7 +1,7 @@
 package com.tvunetworks.scala.spark
 
 import org.apache.spark.rdd.RDD
-import com.tvunetworks.scala.accesslog.pushlive.CloudLiveAccessLog
+import com.tvunetworks.scala.model.CloudLiveAccessLog
 
 /**
  * @author RichardYao
