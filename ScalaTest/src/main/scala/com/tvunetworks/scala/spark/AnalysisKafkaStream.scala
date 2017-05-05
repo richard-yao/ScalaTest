@@ -35,22 +35,24 @@ class AnalysisKafkaStream extends Serializable {
        "value.deserializer" -> classOf[StringDeserializer]
     )
     //启动多个DStream
-    val kafkaDStreams = (1 to consumerThreads).map(idx => {
+    //val kafkaDStreams = (1 to consumerThreads).map(idx => {
       //val stream: InputDStream[(String, String)] = createStream(ssc, kafkaParam, topics)
       val stream = createStream(ssc, kafkaParam, topics)
       val batchData = stream.map(record => (record.key(), record.value())).map(_._2)
         .flatMap(_.split(" ")) //将字符串按空格划分
         .map(r => (r, 1)) //将每个单词映射成一个pair
         .updateStateByKey[Int](updateFunc) //用当前batch的数据区更新已有数据, 对于每个key都会调用func函数处理先前的状态和所有新的状态
-      batchData.print() //每个duration统计数据
-      batchData.countByWindow(Seconds(duration * 6), Seconds(duration * 6)).print() //时间窗口数据统计
+      batchData.foreachRDD(rdd => {
+       rdd.collectAsMap().foreach(println) 
+      }) //每个duration统计数据
+      //batchData.countByWindow(Seconds(duration * 6), Seconds(duration * 6)).print() //时间窗口数据统计
       
       //提交offset更新到zookeeper
       stream.foreachRDD(rdd => {
        val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
        stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRange)
       })
-    })
+    //})
   }
   
   val updateFunc = (currentValues: Seq[Int], preValue: Option[Int]) => {
