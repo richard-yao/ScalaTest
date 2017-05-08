@@ -53,11 +53,11 @@ object LogAnalysisApp {
       })
       
       //对于updateStateByKey这种会改变状态的transformation操作需要使用checkpoint
-      /*ssc.checkpoint("/user/hadoop/checkpoint") //checkpoint文件保存地址
+      ssc.checkpoint("/user/hadoop/checkpoint") //checkpoint文件保存地址
       val kafkaStreaming = new AnalysisKafkaStream()
       kafkaStreaming.useKafkaStreaming(ssc)
       ssc.start()
-      ssc.awaitTermination()*/
+      ssc.awaitTermination()
     }
   }
   

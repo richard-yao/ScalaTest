@@ -44,7 +44,7 @@ class AnalysisKafkaStream extends Serializable {
     stream.foreachRDD(rdd => {
      val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
      
-     dealWithRddData(rdd, ssc)
+     //dealWithRddData(rdd, ssc)
      
      offsetRange.foreach(offset => println("Partition: "+ offset.partition + ", offset: " + offset.fromOffset))
      stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRange) //提交offset更新到zookeeper
