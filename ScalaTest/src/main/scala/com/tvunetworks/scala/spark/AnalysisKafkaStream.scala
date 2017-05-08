@@ -11,6 +11,8 @@ import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import com.tvunetworks.scala.util.UserMemcachedClientImpl
+import java.util.HashMap
+import java.util.Map.Entry
 
 /**
  * @author RichardYao
@@ -35,39 +37,99 @@ class AnalysisKafkaStream extends Serializable {
        "key.deserializer" -> classOf[StringDeserializer],
        "value.deserializer" -> classOf[StringDeserializer]
     )
-    //启动多个DStream
-    //val kafkaDStreams = (1 to consumerThreads).map(idx => {
-      //val stream: InputDStream[(String, String)] = createStream(ssc, kafkaParam, topics)
-      val stream = createStream(ssc, kafkaParam, topics)
-      val batchData = stream.map(record => (record.key(), record.value())).map(_._2)
-        .flatMap(_.split(" ")) //将字符串按空格划分
-        .map(r => (r, 1)) //将每个单词映射成一个pair
-        .updateStateByKey[Int](updateFunc) //用当前batch的数据区更新已有数据, 对于每个key都会调用func函数处理先前的状态和所有新的状态
-      batchData.foreachRDD(rdd => {
-       //rdd.collectAsMap().foreach(println)
-        saveRddDataToMemcache(rdd)
-      }) //每个duration统计数据
-      //batchData.countByWindow(Seconds(duration * 6), Seconds(duration * 6)).print() //时间窗口数据统计
-      
-      //提交offset更新到zookeeper
-      stream.foreachRDD(rdd => {
-       val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-       stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRange)
-      })
-    //})
+    val stream = createStream(ssc, kafkaParam, topics)
+    
+    dealWithStreamingData(stream)
+    
+    stream.foreachRDD(rdd => {
+     val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+     
+     dealWithRddData(rdd, ssc)
+     
+     offsetRange.foreach(offset => println("Partition: "+ offset.partition + ", offset: " + offset.fromOffset))
+     stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRange) //提交offset更新到zookeeper
+    })
   }
   
-  def saveRddDataToMemcache(parameter: RDD[(String, Int)]) {
-    val memcacheConfig = XmlAnalysis.memcacheConfigurationMap
-    val memcacheClient = UserMemcachedClientImpl.getInstance(memcacheConfig("hosts"), memcacheConfig("timeout").toLong)
-    val key = "spark_split_word_result"
-    memcacheClient.set(key, parameter.collectAsMap(), 0)
+  /**
+   * 针对RDD单独的过滤没法获取到整个的结果，缺少updateStateByKey
+   */
+  def dealWithRddData(rdd: RDD[ConsumerRecord[String, String]], ssc: StreamingContext) {
+    val dataKey = "spark_split_word_result_another"
+    val remainData = convertMemcacheDataToRdd(dataKey, ssc)
+    val batchData = rdd.map(record => (record.key(), record.value())).map(_._2)
+      .flatMap(_.split(" ")) //将字符串按空格划分
+      .map(r => (r, 1)) //将每个单词映射成一个pair
+      .join(remainData).map(record => (record._1, record._2._1 + record._2._2))
+      .reduceByKey(_ + _)
+    saveRddDataToMemcache(batchData, dataKey)
+  }
+  
+  /**
+   * Deal kafka produce messages
+   */
+  def dealWithStreamingData(stream: InputDStream[ConsumerRecord[String, String]]): Unit = {
+    val batchData = stream.map(record => (record.key(), record.value())).map(_._2)
+      .flatMap(_.split(" ")) //将字符串按空格划分
+      .map(r => (r, 1)) //将每个单词映射成一个pair
+      .updateStateByKey[Int](updateFunc) //用当前batch的数据区更新已有数据以保证整体数据一致性, 对于每个key都会调用func函数处理先前的状态和所有新的状态
+      
+      //每个duration统计数据
+      batchData.foreachRDD(rdd => {
+        //rdd.collectAsMap().foreach(println)
+        saveRddDataToMemcache(rdd, "spark_split_word_result")
+      }) 
+      //batchData.countByWindow(Seconds(duration * 6), Seconds(duration * 6)).print() //时间窗口数据统计
   }
   
   val updateFunc = (currentValues: Seq[Int], preValue: Option[Int]) => {
     val curr = currentValues.sum
     val pre = preValue.getOrElse(0)
     Some(curr + pre)
+  }
+  
+  /**
+   * Store spark deal result to memcache
+   */
+  def saveRddDataToMemcache(parameter: RDD[(String, Int)], key: String) {
+    val memcacheConfig = XmlAnalysis.memcacheConfigurationMap
+    val memcacheClient = UserMemcachedClientImpl.getInstance(memcacheConfig("hosts"), memcacheConfig("timeout").toLong)
+    memcacheClient.set(key, scalaMapToJavaMap(parameter.collectAsMap()), 0)
+  }
+  
+  def convertMemcacheDataToRdd(key: String, ssc: StreamingContext): RDD[(String, Int)] = {
+    val memcacheConfig = XmlAnalysis.memcacheConfigurationMap
+    val memcacheClient = UserMemcachedClientImpl.getInstance(memcacheConfig("hosts"), memcacheConfig("timeout").toLong)
+    val cacheData = memcacheClient.get(key).asInstanceOf[java.util.HashMap[String, Int]]
+    if(cacheData != null) {
+      val result = javaMapToScalaMap(cacheData)
+      ssc.sparkContext.parallelize(result.toSeq)
+    } else {
+      ssc.sparkContext.parallelize(Seq())
+    }
+  }
+  
+  /**
+   * Convert scala.collection.Map type data to java.util.HashMap data 
+   */
+  def scalaMapToJavaMap(map: scala.collection.Map[String, Int]): HashMap[String, Int] = {
+    val result = new HashMap[String, Int]
+    map.foreach(entry => result.put(entry._1, entry._2))
+    result
+  }
+  
+  /**
+   * Convert scala.collection.Map type data to java.util.HashMap data 
+   */
+  def javaMapToScalaMap(map: java.util.HashMap[String, Int]): scala.collection.mutable.Map[String, Int] = {
+    val result = scala.collection.mutable.Map[String, Int]()
+    var entry: Entry[String, Int] = null
+    val mapIterator = map.entrySet().iterator()
+    while(mapIterator.hasNext()) {
+      entry = mapIterator.next()
+      result += (entry.getKey -> entry.getValue)
+    }
+    result
   }
   
   /**

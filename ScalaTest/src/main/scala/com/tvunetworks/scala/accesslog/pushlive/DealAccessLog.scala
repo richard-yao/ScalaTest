@@ -3,6 +3,8 @@ package com.tvunetworks.scala.accesslog.pushlive
 import org.apache.spark.rdd.RDD
 import com.tvunetworks.scala.spark.AnalysisBase
 import com.tvunetworks.scala.model.CloudLiveAccessLog
+import com.tvunetworks.scala.model.CloudLiveAccessLog
+import com.tvunetworks.scala.util.StringUtil
 
 /**
  * @author RichardYao
@@ -20,7 +22,10 @@ class DealAccessLog[T] extends AnalysisBase[T] {
     //val pvData = dealPVData(successRequest).map(record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2}).foreach(println)
     
     val pvAverageTime = dealPVAndAverageTimeData(successRequest).map(
-        record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2._2 + "\t" + countDivide(record._2._1, record._2._2)}).foreach(println)
+        record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2._2 + "次\t" + countDivide(record._2._1, record._2._2)+"ms"}).foreach(println)
+    val dataUsage = dealEveryIntervalDatausage(successRequest).map(
+        record => {record._1._1 + "\t" + record._1._2 + "\t" + record._2 + "KB"}).foreach(println)
+    
   }
   
   def filterXhrMethod(record: CloudLiveAccessLog): Boolean = {
@@ -40,8 +45,14 @@ class DealAccessLog[T] extends AnalysisBase[T] {
   
   //统计PV的数据同时，计算每个访问当天的平均相应速度
   def dealPVAndAverageTimeData(requestData: RDD[CloudLiveAccessLog]): RDD[((String, String), (Long, Int))] = {
-    val averageTime = requestData.map(record => ((record.formatTime, record.requestAddress), (record.requestInterval.toLong, 1))).reduceByKey((a, b) => (a._1 + b._1, a._2 + b._2))
+    val averageTime = requestData.map(record => ((record.formatTime, record.requestAddress), (((record.processTime).toDouble*1000).toLong, 1))).reduceByKey((a, b) => (a._1 + b._1, a._2 + b._2))
     averageTime.sortBy(record => PVSort(record._1._1, record._2._2))
+  }
+  
+  //统计每个时间段的数据使用量
+  def dealEveryIntervalDatausage(requestData: RDD[CloudLiveAccessLog]): RDD[((String, String), Double)] = {
+    val averageTime = requestData.map(record => ((record.formatTime, record.requestAddress), record.requestDatausage)).reduceByKey(_+_)
+    averageTime.map(rdd => (rdd._1, StringUtil.divideAndGet2PointValue(rdd._2, 1000L)))
   }
   
   def countDivide(sum: Long, number: Int): Int = {

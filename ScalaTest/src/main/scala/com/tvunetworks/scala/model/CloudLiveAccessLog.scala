@@ -18,10 +18,11 @@ class CloudLiveAccessLog(line: String) extends Serializable {
   val requestZone = splitWord(4).filter(ch => ch != ']')
   val formatTime = converTime(requestTime, requestZone)
   val requestMethod = splitWord(5).filter(ch => ch != '"')
-  val requestAddress = splitWord(6)
+  val requestAddress = splitWord(6) //this request server's resources path 
   val serverType = splitWord(7).filter(ch => ch != '"') // HTTP/1.1
   val requestResult = splitWord(8)
-  val requestInterval = splitWord(9) // ms
+  val requestDatausage: Long = (if(splitWord(9) == "-") 0L else splitWord(9).toLong)// request resource used datausage, unit is B
+  val processTime = splitWord(10) //this request used time, unit is second
   
   override def toString = remoteIp+","+requestMethod+","+requestAddress+","+requestResult
   
@@ -49,4 +50,5 @@ class CloudLiveAccessLog(line: String) extends Serializable {
     val sdf = new SimpleDateFormat(pattern)
     sdf.format(new Date(timestamp))
   }
+  
 }
