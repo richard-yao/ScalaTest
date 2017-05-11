@@ -1,11 +1,11 @@
 package com.tvunetworks.scala.util;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -19,9 +19,6 @@ import java.util.regex.Pattern;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * String Utility Class This is used to encode passwords programmatically
  * 
@@ -31,63 +28,9 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author <a href="mailto:matt@raibledesigns.com">Matt Raible</a>
  */
-public class StringUtil {
-	// ~ Static fields/initializers
-	// =============================================
+public class StringUtil implements Serializable {
 
-	private final static Log log = LogFactory.getLog(StringUtil.class);
-
-	// ~ Methods
-	// ================================================================
-
-	/**
-	 * Encode a string using algorithm specified in web.xml and return the
-	 * resulting encrypted password. If exception, the plain credentials string
-	 * is returned
-	 * 
-	 * @param password
-	 *            Password or other credentials to use in authenticating this
-	 *            username
-	 * @param algorithm
-	 *            Algorithm used to do the digest
-	 * 
-	 * @return encypted password based on the algorithm.
-	 */
-	public static String encodePassword(String password, String algorithm) {
-		byte[] unencodedPassword = password.getBytes();
-
-		MessageDigest md = null;
-
-		try {
-			// first create an instance, given the provider
-			md = MessageDigest.getInstance(algorithm);
-		} catch (Exception e) {
-			log.error("Exception: " + e);
-
-			return password;
-		}
-
-		md.reset();
-
-		// call the update method one or more times
-		// (useful when you don't know the size of your data, eg. stream)
-		md.update(unencodedPassword);
-
-		// now calculate the hash
-		byte[] encodedPassword = md.digest();
-
-		StringBuffer buf = new StringBuffer();
-
-		for (int i = 0; i < encodedPassword.length; i++) {
-			if ((encodedPassword[i] & 0xff) < 0x10) {
-				buf.append("0");
-			}
-
-			buf.append(Long.toString(encodedPassword[i] & 0xff, 16));
-		}
-
-		return buf.toString();
-	}
+	private static final long serialVersionUID = -3222572453087296713L;
 
 	/**
 	 * check if a string is null or empty
@@ -201,11 +144,11 @@ public class StringUtil {
 		}
 
 	}
-	
-	public static boolean formatCheck(String reg,String str){
-		if(str == null){
+
+	public static boolean formatCheck(String reg, String str) {
+		if (str == null) {
 			return true;
-		}else{
+		} else {
 			boolean tem = false;
 			try {
 				tem = Pattern.compile(reg).matcher(str).matches();
@@ -218,99 +161,103 @@ public class StringUtil {
 	}
 
 	public static String hexToLowerString(String hexStr) {
-		if(hexStr==null){
+		if (hexStr == null) {
 			return null;
 		}
-		hexStr=hexStr.toLowerCase();
-		if(hexStr.indexOf("0x")==0&&hexStr.length()>2){
-			hexStr=hexStr.substring(2);
+		hexStr = hexStr.toLowerCase();
+		if (hexStr.indexOf("0x") == 0 && hexStr.length() > 2) {
+			hexStr = hexStr.substring(2);
 		}
-		if(!hexStr.matches("^[\\da-f]+$")){
-			hexStr=hexStr.replaceAll("[^\\da-f]+","");
+		if (!hexStr.matches("^[\\da-f]+$")) {
+			hexStr = hexStr.replaceAll("[^\\da-f]+", "");
 		}
 		return hexStr;
 	}
-	
+
 	/**
 	 * 
-	 * @param currentTime: current timestamp
-	 * @param type: three values, 1 mean three month, 2 mean 6month, 3 mean one year
+	 * @param currentTime:
+	 *            current timestamp
+	 * @param type:
+	 *            three values, 1 mean three month, 2 mean 6month, 3 mean one
+	 *            year
 	 * @return expire timestamp
 	 */
 	public static long getExpireTime(long currentTime, int type) {
 		Date date = new Date(currentTime);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
-		if(type == 1) {
+		if (type == 1) {
 			calendar.add(Calendar.MONTH, 3);
-		} else if(type == 2) {
+		} else if (type == 2) {
 			calendar.add(Calendar.MONTH, 6);
 		} else {
 			calendar.add(Calendar.YEAR, 1);
 		}
 		Date theDate = calendar.getTime();
-		//SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		//System.out.println(sdf.format(theDate));
+		// SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		// System.out.println(sdf.format(theDate));
 		return theDate.getTime();
 	}
-	
+
 	public static double getTwoPointValue(String value) {
 		BigDecimal bd = new BigDecimal(value);
-		BigDecimal bd2 = bd.setScale(2 , BigDecimal.ROUND_HALF_UP);
+		BigDecimal bd2 = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
 		return Double.parseDouble(bd2.toString());
 	}
-	
+
 	public static double divideAndGet2PointValue(long value1, long value2) {
 		BigDecimal bd1 = new BigDecimal(value1);
 		BigDecimal bd2 = new BigDecimal(value2);
 		Double result = bd1.divide(bd2, 2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return result;
 	}
-	
+
 	public static String weixinFormatTime() {
 		Date time = new Date();
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
 		return df.format(time);
 	}
-	
+
 	public static String specifyWeixinFormatTime(long time) {
 		Date date = new Date(time);
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
 		return df.format(date);
 	}
-	
+
 	public static String convertWeixinTimeToUtcSeconds(String weixinTime) throws ParseException {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		Date date = simpleDateFormat.parse(weixinTime);
 		BigDecimal curNum = new BigDecimal(date.getTime());
 		BigDecimal ms = new BigDecimal(1000);
-		BigDecimal result = curNum.divide(ms).setScale(0 , BigDecimal.ROUND_HALF_UP);
+		BigDecimal result = curNum.divide(ms).setScale(0, BigDecimal.ROUND_HALF_UP);
 		return result.toString();
 	}
-	
+
 	public static String formatTime() {
 		Date time = new Date();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		return df.format(time);
 	}
-	
-	public static String formatXmlValue(String value){
-		if(value!=null && !value.equals("")){
-			value = "<![CDATA["+value+"]]>";
+
+	public static String formatXmlValue(String value) {
+		if (value != null && !value.equals("")) {
+			value = "<![CDATA[" + value + "]]>";
 		}
 		return value;
 	}
-	
+
 	public static String getUTCSeconds() {
 		long current = System.currentTimeMillis();
 		BigDecimal curNum = new BigDecimal(current);
 		BigDecimal ms = new BigDecimal(1000);
-		BigDecimal result = curNum.divide(ms).setScale(0 , BigDecimal.ROUND_HALF_UP);
+		BigDecimal result = curNum.divide(ms).setScale(0, BigDecimal.ROUND_HALF_UP);
 		return result.toString();
 	}
-	
+
 	/**
 	 * 将对象转换为xml格式字符串
+	 * 
 	 * @param obj
 	 * @return
 	 * @throws Exception
@@ -327,9 +274,9 @@ public class StringUtil {
 		xml = new String(os.toByteArray(), "UTF-8");
 		return xml;
 	}
-	
+
 	public static String allChar = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	
+
 	public static String getRandomString(int length) {
 		StringBuffer stringBuffer = new StringBuffer();
 		Random random = new Random();
@@ -338,9 +285,10 @@ public class StringUtil {
 		}
 		return stringBuffer.toString();
 	}
-	
+
 	/**
 	 * 获得当前子类及其父类中的方法声明
+	 * 
 	 * @param subClass
 	 * @param methodName
 	 * @return
@@ -351,27 +299,29 @@ public class StringUtil {
 			try {
 				return superClass.getDeclaredMethod(methodName, String.class);
 			} catch (NoSuchMethodException e) {
-				//Method不在当前类定义,继续向上转型
+				// Method不在当前类定义,继续向上转型
 			}
 		}
 		throw new NoSuchMethodException();
 	}
-	
+
 	/**
 	 * 将sql查询的关键字进行特殊字符转义
+	 * 
 	 * @param str
 	 * @return
 	 */
 	public static String escapeSpecialChar4Sql(String str) {
-		if(str != null && !str.equals("")) {
+		if (str != null && !str.equals("")) {
 			str = str.replaceAll("'", "''");
 			str = str.replaceAll("%", "\\\\%");
 		}
 		return str;
 	}
-	
+
 	/**
 	 * Get the time of first day in the month
+	 * 
 	 * @param date
 	 * @return
 	 */
@@ -386,12 +336,11 @@ public class StringUtil {
 		gcFirst.set(Calendar.MILLISECOND, 0);
 		return gcFirst.getTimeInMillis();
 	}
-	
-	
+
 	public static void main(String[] args) {
-		//System.out.println(hexToLowerString("f248tfc428vbocgq3948fhq39gf2789429"));
-		//System.out.println(Math.floor(5/1.8));
-		//System.out.println(System.currentTimeMillis());
+		// System.out.println(hexToLowerString("f248tfc428vbocgq3948fhq39gf2789429"));
+		// System.out.println(Math.floor(5/1.8));
+		// System.out.println(System.currentTimeMillis());
 		System.out.println(getUTCSeconds());
 		try {
 			System.out.println(convertWeixinTimeToUtcSeconds("20161018183650"));

@@ -2,16 +2,33 @@
     <sparkConfig>
         <master>spark://10.12.23.4:7077</master>
         <appName>statistic-kpi</appName>
+        <duration>5</duration>
     </sparkConfig>
     <hdfsConfig>
         <hdfsAddress>hdfs://hadoop-master:9000/</hdfsAddress>
     </hdfsConfig>
+    <kafkaConfig>
+        <groupId>test_topic_consumer_group</groupId>
+        <bootstrapServers>10.12.22.100:9092,10.12.22.78:9092,10.12.23.4:9092</bootstrapServers>
+        <zookeeper>10.12.22.100:2181,10.12.22.78:2181,10.12.23.4:2181/kafka</zookeeper>
+        <topic>test_topic</topic>
+    </kafkaConfig>
+    <memcacheConfig>
+        <hosts>10.12.23.4:11211 10.12.22.78:11211</hosts>
+        <timeout>7000</timeout>
+    </memcacheConfig>
     <logProperties>
         <log>
             <statisticTopic>IpAddressAnalysis</statisticTopic>
             <appClass>com.tvunetworks.scala.spark.AnalysisIpAddress</appClass>
-            <sourceFilePath>/user/hadoop/input/tenlines.log</sourceFilePath>
+            <sourceFilePath>/user/hadoop/accesslog/</sourceFilePath>
             <items>ip</items>
+        </log>
+        <log>
+            <statisticTopic>CloudLiveAccesslogAnalysis</statisticTopic>
+            <appClass>com.tvunetworks.scala.accesslog.pushlive.DealAccessLog</appClass>
+            <sourceFilePath>/user/hadoop/accesslog/</sourceFilePath>
+            <item>address</item>
         </log>
     </logProperties>
 </configuration>

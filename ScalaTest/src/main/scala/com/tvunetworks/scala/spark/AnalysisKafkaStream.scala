@@ -12,7 +12,6 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import com.tvunetworks.scala.util.UserMemcachedClientImpl
 import java.util.HashMap
-import java.util.Map.Entry
 
 /**
  * @author RichardYao
@@ -110,25 +109,21 @@ class AnalysisKafkaStream extends Serializable {
   }
   
   /**
-   * Convert scala.collection.Map type data to java.util.HashMap data 
+   * Convert scala.collection.Map type data to java.util.Map data 
    */
-  def scalaMapToJavaMap(map: scala.collection.Map[String, Int]): HashMap[String, Int] = {
-    val result = new HashMap[String, Int]
-    map.foreach(entry => result.put(entry._1, entry._2))
+  def scalaMapToJavaMap(map: scala.collection.Map[String, Int]): java.util.Map[String, Int] = {
+    val result: java.util.Map[String, Int] = new java.util.HashMap[String, Int]
+    map.foreach(record => result.put(record._1, record._2))
     result
   }
   
+  import collection.JavaConversions._
+  import collection.mutable._
   /**
-   * Convert scala.collection.Map type data to java.util.HashMap data 
+   * Convert java.util.HashMap data to scala.collection.Map type data 
    */
   def javaMapToScalaMap(map: java.util.HashMap[String, Int]): scala.collection.mutable.Map[String, Int] = {
-    val result = scala.collection.mutable.Map[String, Int]()
-    var entry: Entry[String, Int] = null
-    val mapIterator = map.entrySet().iterator()
-    while(mapIterator.hasNext()) {
-      entry = mapIterator.next()
-      result += (entry.getKey -> entry.getValue)
-    }
+    val result: scala.collection.mutable.Map[String, Int] = map //直接隐式转换会导致结果没有被序列化
     result
   }
   
@@ -137,7 +132,7 @@ class AnalysisKafkaStream extends Serializable {
    * @param kafkaParam kafka相关配置
    * @param topics 需要消费的topic集合
    */
-  def createStream(ssc: StreamingContext, kafkaParam: Map[String, Object], topics: Set[String]): InputDStream[ConsumerRecord[String, String]] = {
+  def createStream(ssc: StreamingContext, kafkaParam: scala.collection.immutable.Map[String, Object], topics: scala.collection.immutable.Set[String]): InputDStream[ConsumerRecord[String, String]] = {
     //KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParam, topics)
     KafkaUtils.createDirectStream[String, String](ssc, PreferConsistent, Subscribe[String, String](topics, kafkaParam))
   }

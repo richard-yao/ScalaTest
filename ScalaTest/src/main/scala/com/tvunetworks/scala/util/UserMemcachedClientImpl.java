@@ -1,6 +1,7 @@
 package com.tvunetworks.scala.util;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,7 +17,9 @@ import net.spy.memcached.NodeLocator;
 import org.apache.commons.lang.StringUtils;
 
 
-public class UserMemcachedClientImpl {
+public class UserMemcachedClientImpl implements Serializable {
+	
+	private static final long serialVersionUID = -6073217571562656667L;
 	
 	private String hosts = null;
 	private long timeout = 7000;

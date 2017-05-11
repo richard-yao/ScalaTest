@@ -4,6 +4,13 @@ import scala.io.Source
 import java.io.File
 import java.io.PrintWriter
 import java.util.Date
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.charset.Charset
+import scala.annotation.tailrec
+import com.tvunetworks.test.Person
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object Fun {
 
@@ -134,4 +141,96 @@ object Fun {
     //等价于下面这种
     withPrintWriter(file)(funWriter)
   }
+  
+  //自动资源管理
+  def defineAutoResourceManage() {
+    def using[T <: AutoCloseable, R](res: T)(func: T => R): R = {
+      try {
+        func(res)
+      } finally {
+        if(res != null)
+          res.close()
+      }
+    }
+    
+    val allLine = using(Files.newBufferedReader(Paths.get("e:/synclog.txt"), Charset.forName("UTF-8"))) { reader =>
+      //该注解用来表明改函数是尾递归，非尾递归使用会抛出异常
+      @tailrec
+      def readAll(buffer: StringBuilder, line: String): String = {
+        if(line == null) 
+          buffer.toString()
+        else {
+          buffer.append(line).append('\n')
+          readAll(buffer, reader.readLine())
+        }
+      }
+      readAll(new StringBuilder(), reader.readLine())
+    }
+    println(allLine)
+  }
+  
+  def useMatchWithImplicitConversion() {
+    for {
+      x <- Seq(1, false, 2.7, "one", 'fout, new java.util.Date(), new RuntimeException("Runtime exception"))
+    } {
+      val str = x match {
+        case d: Double => s"double: $d" //这里s是隐式apply函数，用于将$表达式用参数代替
+        case false => "boolean false"
+        case d: java.util.Date => s"java.util.Date: $d"
+        case 1 => "int 1"
+        case s: String => s"string: $s"
+        case symbol: Symbol => s"symbol: $symbol"
+        case unexpected => s"unexpected value: $unexpected"
+      }
+      println(str)
+    }
+  }
+  
+  //Use case class to match different result
+  def useCaseClass() {
+    trait Person
+    case class Man(name: String, age: Int) extends Person
+    case class Woman(name: String, age: Int) extends Person
+    case class Boy(name: String, age: Int) extends Person
+    val father = Man("Father", 33)
+    val mather = Woman("Mother", 30)
+    val son = Man("Son", 7)
+    val daughter = Woman("Daughter", 3)
+    for(person <- Seq[Person](father, mather, son, daughter)) {
+      person match {
+        case Man("Father", age) => println(s"father's age is ${age}")
+        case man: Man if man.age < 10 => println(s"man is $man")
+        case Woman(name, 30) => println(s"${name} is 30 years old")
+        case Woman(name, age) => println(s"${name} is ${age} years old")
+      }
+    }
+  }
+  
+  import scala.concurrent.Future
+  import scala.util.{Success, Failure}
+  import scala.concurrent.ExecutionContext.Implicits.global
+  def useMultiThread() {
+    val futures = (1 to 2) map {
+      case 1 => Future.successful("1 is odd number")
+      case 2 => Future.failed(new RuntimeException("2 is not odd number"))
+    }
+    futures.foreach(_.onComplete {
+      case Success(i) => println(i)
+      case Failure(t) => println(t)
+    })
+    Thread.sleep(2000L)
+  }
+  
+  def useMultiThread2() {
+    val futures = (0 until 10).map { i =>
+      Future {
+        val s = i.toString
+        print(s)
+        s
+      }
+    }
+    val future = Future.reduce(futures)((x, y) => x+y)
+    val result = Await.result(future, Duration.Inf)
+  }
+  
 }
