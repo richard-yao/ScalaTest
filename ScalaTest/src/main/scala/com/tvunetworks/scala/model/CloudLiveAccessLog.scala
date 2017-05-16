@@ -51,7 +51,7 @@ class CloudLiveAccessLog(line: String) extends Serializable {
     try {
       val pattern = "dd/MMM/yyyy:hh:mm:ss"
       val sdf = new SimpleDateFormat(pattern, Locale.ENGLISH)
-      val timezone = TimeZone.getTimeZone(requestZone)
+      val timezone = TimeZone.getTimeZone("GMT"+requestZone)
       sdf.setTimeZone(timezone)
       val utcTime = sdf.parse(requestTime).getTime
       convertTimeToStr(utcTime)
@@ -70,8 +70,9 @@ class CloudLiveAccessLog(line: String) extends Serializable {
 
 object Test {
   def main(str: Array[String]) {
-    val log = new CloudLiveAccessLog("10.12.22.234 - - [10/May/2017:16:35:58 +0800] GET /tvucc/js/util/datetimepicker/css/bootstrap-datetimepicker.css?version=version3.0.84%20build84 HTTP/1.1 304 - 0.001")
-    val str = "/tvucc/taskInfoFromMemory.action?"
-    println(log.filterRandomParameter(str))
+    val log = new CloudLiveAccessLog("10.12.22.234 - - [12/May/2017:21:13:32 +0800] GET /tvucc/js/util/datetimepicker/css/bootstrap-datetimepicker.css?version=version3.0.84%20build84 HTTP/1.1 304 - 0.001")
+    //val str = "/tvucc/taskInfoFromMemory.action?"
+    //println(log.filterRandomParameter(str))
+    print(log.formatTime)
   }
 }
