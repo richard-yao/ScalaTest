@@ -51,7 +51,6 @@ object LogAnalysisApp {
         val constructor = constructors(0).newInstance()
         val outputRecord = constructor.asInstanceOf[AnalysisBase[CloudLiveAccessLog]].run(filterData)
       })
-      
       //对于updateStateByKey这种会改变状态的transformation操作需要使用checkpoint
       ssc.checkpoint("/user/hadoop/checkpoint") //checkpoint文件保存地址
       val kafkaStreaming = new AnalysisKafkaStream()
