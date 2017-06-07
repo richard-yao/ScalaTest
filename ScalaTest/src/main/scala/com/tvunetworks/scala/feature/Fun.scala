@@ -16,7 +16,7 @@ object Fun {
 
   def main(args: Array[String]) {
       println(++(9))
-      var arrs = Array("what", "can", "I", "do", "for", "you")
+      val arrs = Array("what", "can", "I", "do", "for", "you")
       arrs.foreach(println)
       useTurple
       readFile("E:/test.txt")

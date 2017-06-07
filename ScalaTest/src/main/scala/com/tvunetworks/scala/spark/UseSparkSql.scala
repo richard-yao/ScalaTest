@@ -12,18 +12,18 @@ import org.apache.spark.SparkContext
 object UseSpackSql {
   
   def main(args: Array[String]) {
-    val sparkConf = new SparkConf().setAppName("TestUseSparkSql").setMaster("spark://ip:7077")
+    val sparkConf = new SparkConf().setAppName("TestUseSparkSql").setMaster("spark://hadoop-master:7077")
     val sc = new SparkContext(sparkConf)
     val sparkSql = new SQLContext(sc)
     val prop = new Properties
-    prop.put("user", "xxxx")
-    prop.put("password", "xxxx")
+    prop.put("user", "root")
+    prop.put("password", "root")
     
-    val dbUrl = "jdbc:mysql://ip:3306/bigdata"
+    val dbUrl = "jdbc:mysql://10.12.23.146:3306/bigdata"
     val lowerBound = 2L
-    val upperBound = 10000L
+    val upperBound = 10000000L
     val tableName = "hotel_copy"
-    val df = sparkSql.read.jdbc(dbUrl, tableName, "'index'", lowerBound, upperBound, 3, prop)
+    val df = sparkSql.read.jdbc(dbUrl, tableName, "'index'", lowerBound, upperBound, 3, prop).cache()
     df.show()
   }
 }
