@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tvunetworks.richard</groupId>
 	<artifactId>ScalaTest</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>ScalaTest</name>
 
 	<properties>
@@ -100,7 +100,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.tvunetworks.scala.spark.LogAnalysisApp</mainClass>
+							<mainClass>com.tvunetworks.project.main.MainObject</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
